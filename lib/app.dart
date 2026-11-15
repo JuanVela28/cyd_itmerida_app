@@ -1,3 +1,4 @@
+import 'package:cyd_itmerida_app/screens/admin/admin_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,8 +12,7 @@ final GoRouter _router = GoRouter(
     GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
     GoRoute(
       path: '/admin',
-      builder: (context, state) =>
-          const _RolePlaceholderScreen(title: 'Panel Admin · CyD ITMérida'),
+      builder: (context, state) => const AdminDashboardScreen(),
     ),
     GoRoute(
       path: '/secretary',
