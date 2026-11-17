@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../../features/requests/service_catalog_service.dart';
@@ -36,23 +35,13 @@ class _ServiceFields {
   TimeOfDay? scheduleTime;
 
   _ServiceFields(ServiceDetailData? data)
-      : description = TextEditingController(
-          text: data?.description ?? '',
-        ),
-        formatType = TextEditingController(
-          text: data?.formatType ?? '',
-        ),
-        dimensions = TextEditingController(
-          text: data?.dimensions ?? '',
-        ),
-        quantity = TextEditingController(
-          text: data?.quantity?.toString() ?? '',
-        ),
-        location = TextEditingController(
-          text: data?.location ?? '',
-        ),
-        requiredDate = data?.requiredDate,
-        scheduleTime = data?.scheduleTime;
+    : description = TextEditingController(text: data?.description ?? ''),
+      formatType = TextEditingController(text: data?.formatType ?? ''),
+      dimensions = TextEditingController(text: data?.dimensions ?? ''),
+      quantity = TextEditingController(text: data?.quantity?.toString() ?? ''),
+      location = TextEditingController(text: data?.location ?? ''),
+      requiredDate = data?.requiredDate,
+      scheduleTime = data?.scheduleTime;
 
   void dispose() {
     description.dispose();
@@ -78,8 +67,7 @@ class ServiceDetailsStep extends StatefulWidget {
   });
 
   @override
-  State<ServiceDetailsStep> createState() =>
-      _ServiceDetailsStepState();
+  State<ServiceDetailsStep> createState() => _ServiceDetailsStepState();
 }
 
 class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
@@ -93,9 +81,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
 
     _fields = {
       for (final service in widget.services)
-        service.id: _ServiceFields(
-          widget.initialDetails[service.id],
-        ),
+        service.id: _ServiceFields(widget.initialDetails[service.id]),
     };
   }
 
@@ -138,9 +124,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
   DateTime _minimumDate(ServiceOption service) {
     final today = _today();
 
-    return _requiresAdvance(service)
-        ? _addBusinessDays(today, 5)
-        : today;
+    return _requiresAdvance(service) ? _addBusinessDays(today, 5) : today;
   }
 
   String _formatDate(DateTime date) {
@@ -156,8 +140,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
 
   Map<String, ServiceDetailData> _collectDetails() {
     return {
-      for (final service in widget.services)
-        service.id: _buildDetail(service),
+      for (final service in widget.services) service.id: _buildDetail(service),
     };
   }
 
@@ -187,9 +170,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
     if (!(_formKey.currentState?.validate() ?? false)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Revisa los campos obligatorios de cada servicio.',
-          ),
+          content: Text('Revisa los campos obligatorios de cada servicio.'),
         ),
       );
       return;
@@ -198,10 +179,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
     widget.onContinue(_collectDetails());
   }
 
-  Widget _dateField(
-    ServiceOption service,
-    _ServiceFields fields,
-  ) {
+  Widget _dateField(ServiceOption service, _ServiceFields fields) {
     final earliest = _minimumDate(service);
 
     return FormField<DateTime>(
@@ -211,11 +189,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
           return 'Selecciona la fecha requerida.';
         }
 
-        if (DateTime(
-          value.year,
-          value.month,
-          value.day,
-        ).isBefore(earliest)) {
+        if (DateTime(value.year, value.month, value.day).isBefore(earliest)) {
           return _requiresAdvance(service)
               ? 'Este servicio requiere 5 días hábiles de anticipación.'
               : 'La fecha no puede ser anterior a hoy.';
@@ -231,8 +205,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
           children: [
             OutlinedButton.icon(
               onPressed: () async {
-                final initial = date != null &&
-                        !date.isBefore(earliest)
+                final initial = date != null && !date.isBefore(earliest)
                     ? date
                     : earliest;
 
@@ -244,9 +217,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
                   helpText: 'Fecha requerida',
                 );
 
-                if (selected == null ||
-                    !mounted ||
-                    !field.mounted) {
+                if (selected == null || !mounted || !field.mounted) {
                   return;
                 }
 
@@ -378,8 +349,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
                     ),
                     maxLength: 100,
                     validator: (value) {
-                      if (value == null ||
-                          value.trim().isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return 'Especifica las dimensiones.';
                       }
                       return null;
@@ -397,8 +367,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
                       hintText: 'Ej. 50',
                     ),
                     validator: (value) {
-                      final quantity =
-                          int.tryParse(value?.trim() ?? '');
+                      final quantity = int.tryParse(value?.trim() ?? '');
 
                       if (quantity == null || quantity <= 0) {
                         return 'Ingresa una cantidad válida.';
@@ -440,11 +409,6 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            LinearProgressIndicator(
-              value: 0.6,
-              borderRadius: BorderRadius.circular(8),
-            ),
-
             const SizedBox(height: 16),
 
             Text(
@@ -459,9 +423,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
 
             Text(
               'Detalles de los servicios',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
+              style: Theme.of(context).textTheme.headlineSmall
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
 

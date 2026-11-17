@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
+import '../../features/schedule/schedule_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -13,18 +14,31 @@ class AdminDashboardScreen extends StatefulWidget {
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _authService = AuthService();
+  final _scheduleService = ScheduleService();
+
   String _userName = '...';
+  int _todayEventsCount = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadDashboardData();
   }
 
-  Future<void> _loadUserName() async {
+  Future<void> _loadDashboardData() async {
     final name = await _authService.getCurrentUserName();
+    int todayCount = 0;
+    try {
+      todayCount = await _scheduleService.countTodayEvents();
+    } catch (_) {
+      todayCount = 0;
+    }
+
     if (mounted) {
-      setState(() => _userName = name);
+      setState(() {
+        _userName = name;
+        _todayEventsCount = todayCount;
+      });
     }
   }
 
@@ -85,7 +99,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                         tooltip: 'Cerrar sesión',
                         onPressed: () async {
-                          await AuthService().signOut();
+                          await _authService.signOut();
                           if (context.mounted) context.go('/login');
                         },
                       ),
@@ -119,7 +133,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 2. Tarjetas de resumen rápido (datos de muestra por ahora)
+                  // 2. Tarjetas de resumen rápido
                   const Text(
                     'Resumen general',
                     style: TextStyle(
@@ -147,7 +161,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       const SizedBox(width: 10),
                       _buildStatCard(
                         label: 'Para hoy',
-                        value: '0',
+                        value: '$_todayEventsCount',
                         bgColor: AppColors.statusDoneBg,
                         textColor: AppColors.statusDoneText,
                       ),
@@ -170,17 +184,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.inbox_rounded,
                     title: 'Solicitudes recibidas',
                     subtitle: 'Revisar, aprobar o rechazar trámites',
-                    onTap: () {
-                      // Próximo módulo a conectar
-                    },
+                    onTap: () => context.push('/admin/requests'),
                   ),
                   const SizedBox(height: 12),
                   _buildMenuTile(
                     icon: Icons.calendar_month_rounded,
                     title: 'Agenda institucional',
                     subtitle: 'Ver eventos y programaciones de CyD',
-                    onTap: () {
-                      // Próximo módulo a conectar
+                    onTap: () async {
+                      await context.push('/admin/schedule');
+                      _loadDashboardData();
                     },
                   ),
                   const SizedBox(height: 12),

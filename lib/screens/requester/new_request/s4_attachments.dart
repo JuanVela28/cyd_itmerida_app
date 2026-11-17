@@ -1,14 +1,9 @@
-
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import '../../../features/requests/service_catalog_service.dart';
 
-enum AttachmentCategory {
-  generalReference,
-  certificatesList,
-  eventPhotosPdf,
-}
+enum AttachmentCategory { generalReference, certificatesList, eventPhotosPdf }
 
 extension AttachmentCategoryInfo on AttachmentCategory {
   String get databaseValue {
@@ -22,12 +17,12 @@ extension AttachmentCategoryInfo on AttachmentCategory {
   List<String> get allowedExtensions {
     return switch (this) {
       AttachmentCategory.generalReference => [
-          'pdf',
-          'jpg',
-          'jpeg',
-          'png',
-          'docx',
-        ],
+        'pdf',
+        'jpg',
+        'jpeg',
+        'png',
+        'docx',
+      ],
       AttachmentCategory.certificatesList => ['xlsx', 'csv'],
       AttachmentCategory.eventPhotosPdf => ['pdf'],
     };
@@ -61,8 +56,7 @@ class AttachmentsStep extends StatefulWidget {
   });
 
   @override
-  State<AttachmentsStep> createState() =>
-      _AttachmentsStepState();
+  State<AttachmentsStep> createState() => _AttachmentsStepState();
 }
 
 class _AttachmentsStepState extends State<AttachmentsStep> {
@@ -90,9 +84,7 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
 
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _pickFiles(AttachmentCategory category) async {
@@ -113,34 +105,28 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
 
       for (final file in files) {
         final name = file.name.trim();
-        final extension =
-            name.contains('.') ? name.split('.').last.toLowerCase() : '';
+        final extension = name.contains('.')
+            ? name.split('.').last.toLowerCase()
+            : '';
 
         if (!category.allowedExtensions.contains(extension)) {
           rejected++;
           continue;
         }
 
-        final int? size =
-            file.lengthSync() ?? await file.length();
+        final int? size = file.lengthSync() ?? await file.length();
 
         if (!mounted) return;
 
-        if (size == null ||
-            size <= 0 ||
-            size > _maxFileBytes) {
+        if (size == null || size <= 0 || size > _maxFileBytes) {
           rejected++;
           continue;
         }
 
-        final duplicate = [
-          ..._attachments,
-          ...accepted,
-        ].any(
+        final duplicate = [..._attachments, ...accepted].any(
           (item) =>
               item.category == category &&
-              item.file.name.toLowerCase() ==
-                  name.toLowerCase() &&
+              item.file.name.toLowerCase() == name.toLowerCase() &&
               item.sizeBytes == size,
         );
 
@@ -150,11 +136,7 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
         }
 
         accepted.add(
-          PendingAttachment(
-            file: file,
-            category: category,
-            sizeBytes: size,
-          ),
+          PendingAttachment(file: file, category: category, sizeBytes: size),
         );
       }
 
@@ -169,9 +151,7 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
       _showMessage(message);
     } catch (error) {
       debugPrint('File picker error: $error');
-      _showMessage(
-        'No se pudieron seleccionar los archivos.',
-      );
+      _showMessage('No se pudieron seleccionar los archivos.');
     } finally {
       if (mounted) {
         setState(() => _isPicking = false);
@@ -192,8 +172,7 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
   void _continue() {
     if (_requiresStudentList &&
         !_attachments.any(
-          (item) =>
-              item.category == AttachmentCategory.certificatesList,
+          (item) => item.category == AttachmentCategory.certificatesList,
         )) {
       _showMessage(
         'Debes agregar una lista XLSX o CSV '
@@ -254,10 +233,7 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
             Text(
               'Formatos: '
               '${category.allowedExtensions.join(', ').toUpperCase()}',
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
             ),
 
             const SizedBox(height: 12),
@@ -265,28 +241,21 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
             if (files.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
-                child: Text(
-                  'No hay archivos seleccionados.',
-                ),
+                child: Text('No hay archivos seleccionados.'),
               ),
 
             ...files.map((item) {
-              final megabytes =
-                  item.sizeBytes / (1024 * 1024);
+              final megabytes = item.sizeBytes / (1024 * 1024);
 
               return ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(
-                  Icons.insert_drive_file_outlined,
-                ),
+                leading: const Icon(Icons.insert_drive_file_outlined),
                 title: Text(
                   item.file.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                subtitle: Text(
-                  '${megabytes.toStringAsFixed(2)} MB',
-                ),
+                subtitle: Text('${megabytes.toStringAsFixed(2)} MB'),
                 trailing: IconButton(
                   icon: const Icon(Icons.delete_outline),
                   tooltip: 'Quitar archivo',
@@ -296,9 +265,7 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
             }),
 
             OutlinedButton.icon(
-              onPressed: _isPicking
-                  ? null
-                  : () => _pickFiles(category),
+              onPressed: _isPicking ? null : () => _pickFiles(category),
               icon: const Icon(Icons.attach_file),
               label: const Text('Agregar archivos'),
             ),
@@ -315,11 +282,6 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        LinearProgressIndicator(
-          value: 0.8,
-          borderRadius: BorderRadius.circular(8),
-        ),
-
         const SizedBox(height: 16),
 
         Text(
@@ -378,9 +340,7 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
 
         Text(
           'Archivos seleccionados: ${_attachments.length}',
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
 
         const SizedBox(height: 8),

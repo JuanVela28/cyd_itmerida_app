@@ -112,4 +112,34 @@ class ScheduleService {
         })
         .eq('id', eventId);
   }
+
+  /// Cuenta cuántos eventos activos (no cancelados) hay programados para hoy
+  Future<int> countTodayEvents() async {
+    final now = DateTime.now();
+    final startIso = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      0,
+      0,
+      0,
+    ).toUtc().toIso8601String();
+    final endIso = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      23,
+      59,
+      59,
+    ).toUtc().toIso8601String();
+
+    final response = await _supabase
+        .from('schedule_events')
+        .select('id')
+        .gte('start_time', startIso)
+        .lte('start_time', endIso)
+        .neq('status', 'cancelled');
+
+    return (response as List).length;
+  }
 }

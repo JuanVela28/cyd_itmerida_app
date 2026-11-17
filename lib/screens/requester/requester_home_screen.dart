@@ -1,205 +1,326 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
 
-class RequesterHomeScreen extends StatelessWidget {
+class RequesterHomeScreen extends StatefulWidget {
   const RequesterHomeScreen({super.key});
 
-  void _showComingSoon(BuildContext context, String feature) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('$feature estará disponible próximamente.'),
-      ),
-    );
+  @override
+  State<RequesterHomeScreen> createState() => _RequesterHomeScreenState();
+}
+
+class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
+  final _authService = AuthService();
+  String _userName = '...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName();
   }
 
-  Future<void> _signOut(BuildContext context) async {
-    try {
-      await AuthService().signOut();
+  Future<void> _loadUserName() async {
+    final name = await _authService.getCurrentUserName();
+    if (mounted) {
+      setState(() => _userName = name);
+    }
+  }
 
-      if (!context.mounted) return;
+  void _showComingSoon(String feature) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text('$feature estará disponible próximamente.')),
+      );
+  }
+
+  Future<void> _signOut() async {
+    try {
+      await _authService.signOut();
+      if (!mounted) return;
       context.go('/login');
     } catch (_) {
-      if (!context.mounted) return;
-
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'No se pudo cerrar sesión. Inténtalo nuevamente.',
-          ),
+          content: Text('No se pudo cerrar sesión. Inténtalo nuevamente.'),
+          backgroundColor: AppColors.errorRed,
         ),
       );
     }
   }
 
-  Widget _actionCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String description,
-  }) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-        leading: Icon(
-          icon,
-          size: 30,
-          color: colors.primary,
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(description),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () {
-  if (title == 'Nueva solicitud') {
-    context.push('/requester/new');
-  } else {
-    _showComingSoon(context, title);
-  }
-},
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('CyD ITMérida'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Cerrar sesión',
-            onPressed: () => _signOut(context),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 600,
-            ),
-            child: ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Text(
-                  'Portal de solicitudes',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+      backgroundColor: AppColors.backgroundCream,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 1. Cabecera curva guinda estilo Figma (idéntica a AdminDashboardScreen)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(24, 56, 24, 32),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.primaryGuinda,
+                    AppColors.primaryGuindaDark,
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Bienvenido al Departamento de '
-                  'Comunicación y Difusión.',
-                  style: theme.textTheme.bodyLarge,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
                 ),
-                const SizedBox(height: 24),
-
-                Card(
-                  color: colors.primaryContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.campaign_outlined,
-                          size: 32,
-                          color: colors.onPrimaryContainer,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Solicitudes institucionales',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            color: colors.onPrimaryContainer,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Solicita servicios de diseño, '
-                          'video, cobertura y protocolo.',
+                        child: const Text(
+                          'CyD ITMérida',
                           style: TextStyle(
-                            color: colors.onPrimaryContainer,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                         ),
-                      ],
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white,
+                        ),
+                        tooltip: 'Cerrar sesión',
+                        onPressed: _signOut,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'PORTAL DE SOLICITUDES',
+                    style: TextStyle(
+                      color: AppColors.secondaryGold,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.1,
                     ),
                   ),
-                ),
-
-                const SizedBox(height: 24),
-                Text(
-                  '¿Qué deseas hacer?',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 4),
+                  Text(
+                    'Hola, $_userName',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Solicita servicios de diseño, video, cobertura y protocolo.',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
-                _actionCard(
-                  context,
-                  icon: Icons.note_add_outlined,
-                  title: 'Nueva solicitud',
-                  description:
-                      'Registra uno o varios servicios.',
-                ),
+            // 2. Contenido principal
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '¿Qué deseas hacer?',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
 
-                const SizedBox(height: 8),
+                  // Acción principal destacada: Nueva solicitud
+                  InkWell(
+                    onTap: () => context.push('/requester/new'),
+                    borderRadius: BorderRadius.circular(18),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceWhite,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: AppColors.primaryGuinda.withValues(
+                            alpha: 0.25,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryGuinda,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.note_add_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Nueva solicitud',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Registra uno o varios servicios para tu actividad',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColors.primaryGuinda,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
-                _actionCard(
-                  context,
-                  icon: Icons.assignment_outlined,
-                  title: 'Mis solicitudes',
-                  description:
-                      'Consulta el estado de tus solicitudes.',
-                ),
+                  const SizedBox(height: 12),
 
-                const SizedBox(height: 24),
+                  // Acción secundaria: Mis solicitudes
+                  InkWell(
+                    onTap: () => _showComingSoon('Mis solicitudes'),
+                    borderRadius: BorderRadius.circular(18),
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceWhite,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.borderSubtle),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryGuindaLight,
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(
+                              Icons.assignment_outlined,
+                              color: AppColors.primaryGuinda,
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Mis solicitudes',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Consulta el estatus y sube evidencias PDF',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.textMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: AppColors.textMuted,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
-                Card(
-                  child: Padding(
+                  const SizedBox(height: 20),
+
+                  // Aviso operativo con estilo institucional
+                  Container(
                     padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                    decoration: BoxDecoration(
+                      color: AppColors.statusPendingBg,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.statusPendingText.withValues(
+                          alpha: 0.3,
+                        ),
+                      ),
+                    ),
+                    child: const Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          Icons.info_outline,
-                          color: colors.primary,
+                          Icons.info_outline_rounded,
+                          color: AppColors.statusPendingText,
+                          size: 20,
                         ),
-                        const SizedBox(width: 12),
-                        const Expanded(
+                        SizedBox(width: 12),
+                        Expanded(
                           child: Text(
-                            'Los servicios de diseño y constancias '
-                            'requieren al menos 5 días de anticipación.',
+                            'Los servicios de diseño y constancias requieren al menos 5 días hábiles de anticipación.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.statusPendingText,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

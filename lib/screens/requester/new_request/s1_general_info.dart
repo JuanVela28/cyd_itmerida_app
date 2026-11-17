@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -25,8 +24,7 @@ class GeneralInfoStep extends StatefulWidget {
   });
 
   @override
-  State<GeneralInfoStep> createState() =>
-      _GeneralInfoStepState();
+  State<GeneralInfoStep> createState() => _GeneralInfoStepState();
 }
 
 class _GeneralInfoStepState extends State<GeneralInfoStep> {
@@ -41,8 +39,7 @@ class _GeneralInfoStepState extends State<GeneralInfoStep> {
   @override
   void initState() {
     super.initState();
-    _activityController.text =
-        widget.initialActivityName ?? '';
+    _activityController.text = widget.initialActivityName ?? '';
     _loadProfile();
   }
 
@@ -67,20 +64,14 @@ class _GeneralInfoStepState extends State<GeneralInfoStep> {
           .single();
 
       if (profile['role'] != 'requester') {
-        throw Exception(
-          'Tu cuenta no tiene permiso para crear solicitudes.',
-        );
+        throw Exception('Tu cuenta no tiene permiso para crear solicitudes.');
       }
 
-      final name =
-          (profile['full_name'] as String?)?.trim() ?? '';
-      final department =
-          (profile['department'] as String?)?.trim() ?? '';
+      final name = (profile['full_name'] as String?)?.trim() ?? '';
+      final department = (profile['department'] as String?)?.trim() ?? '';
 
       if (name.isEmpty || department.isEmpty) {
-        throw Exception(
-          'Tu perfil no tiene nombre o departamento asignado.',
-        );
+        throw Exception('Tu perfil no tiene nombre o departamento asignado.');
       }
 
       if (!mounted) return;
@@ -127,9 +118,7 @@ class _GeneralInfoStepState extends State<GeneralInfoStep> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_errorMessage != null) {
@@ -139,10 +128,7 @@ class _GeneralInfoStepState extends State<GeneralInfoStep> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-              ),
+              Text(_errorMessage!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadProfile,
@@ -165,10 +151,6 @@ class _GeneralInfoStepState extends State<GeneralInfoStep> {
       child: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          LinearProgressIndicator(
-            value: 0.2,
-            borderRadius: BorderRadius.circular(8),
-          ),
           const SizedBox(height: 16),
 
           Text(
@@ -183,9 +165,7 @@ class _GeneralInfoStepState extends State<GeneralInfoStep> {
 
           Text(
             'Datos generales',
-            style: Theme.of(context)
-                .textTheme
-                .headlineSmall
+            style: Theme.of(context).textTheme.headlineSmall
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
 

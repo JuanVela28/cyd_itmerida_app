@@ -1,7 +1,9 @@
 import 'package:cyd_itmerida_app/screens/admin/admin_dashboard_screen.dart';
+import 'package:cyd_itmerida_app/screens/admin/request_management_screen.dart';
 import 'package:cyd_itmerida_app/screens/secretary/schedule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
 import 'screens/requester/requester_home_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/auth_service.dart';
@@ -17,23 +19,28 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => const AdminDashboardScreen(),
     ),
     GoRoute(
+      path: '/admin/schedule',
+      builder: (context, state) => const ScheduleScreen(canCreateEvents: true),
+    ),
+    GoRoute(
+      path: '/admin/requests',
+      builder: (context, state) => const RequestManagementScreen(),
+    ),
+    GoRoute(
       path: '/secretary',
       builder: (context, state) => const ScheduleScreen(),
     ),
     GoRoute(
       path: '/staff',
-      builder: (context, state) =>
-          const _RolePlaceholderScreen(title: 'Operación Staff CyD'),
+      builder: (context, state) => const ScheduleScreen(canCreateEvents: false),
     ),
     GoRoute(
-  path: '/requester',
-  builder: (context, state) =>
-      const RequesterHomeScreen(),
-      ),
+      path: '/requester',
+      builder: (context, state) => const RequesterHomeScreen(),
+    ),
     GoRoute(
-  path: '/requester/new',
-  builder: (context, state) =>
-      const NewRequestScreen(),
+      path: '/requester/new',
+      builder: (context, state) => const NewRequestScreen(),
     ),
   ],
 );

@@ -1,18 +1,18 @@
-
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_colors.dart';
 import '../../../features/requests/service_catalog_service.dart';
 import 's1_general_info.dart';
 import 's2_services.dart';
 import 's3_service_details.dart';
 import 's4_attachments.dart';
+import 's5_confirmation.dart';
 
 class NewRequestScreen extends StatefulWidget {
   const NewRequestScreen({super.key});
 
   @override
-  State<NewRequestScreen> createState() =>
-      _NewRequestScreenState();
+  State<NewRequestScreen> createState() => _NewRequestScreenState();
 }
 
 class _NewRequestScreenState extends State<NewRequestScreen> {
@@ -33,27 +33,20 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   void _saveServices(List<ServiceOption> services) {
     _selectedServices = List.of(services);
 
-    final selectedIds = services
-        .map((service) => service.id)
-        .toSet();
+    final selectedIds = services.map((service) => service.id).toSet();
 
-    _serviceDetails.removeWhere(
-      (id, detail) => !selectedIds.contains(id),
-    );
+    _serviceDetails.removeWhere((id, detail) => !selectedIds.contains(id));
     final requiresStudentList = services.any((service) {
-  final name = service.name.trim().toLowerCase();
-  return name == 'constancias' || name == 'carpetas';
-});
+      final name = service.name.trim().toLowerCase();
+      return name == 'constancias' || name == 'carpetas';
+    });
 
-if (!requiresStudentList) {
-  _attachments.removeWhere(
-    (item) =>
-        item.category == AttachmentCategory.certificatesList,
-  );
-}
+    if (!requiresStudentList) {
+      _attachments.removeWhere(
+        (item) => item.category == AttachmentCategory.certificatesList,
+      );
+    }
   }
-
-  
 
   void _goToStep(int step) {
     setState(() {
@@ -61,47 +54,32 @@ if (!requiresStudentList) {
     });
   }
 
-  void _saveDetailsAndBack(
-    Map<String, ServiceDetailData> details,
-  ) {
+  void _saveDetailsAndBack(Map<String, ServiceDetailData> details) {
     setState(() {
       _serviceDetails = details;
       _currentStep = 1;
     });
   }
 
-  void _saveDetailsAndContinue(
-    Map<String, ServiceDetailData> details,
-  ) {
+  void _saveDetailsAndContinue(Map<String, ServiceDetailData> details) {
     setState(() {
       _serviceDetails = details;
       _currentStep = 3;
     });
   }
-  void _saveAttachmentsAndBack(
-  List<PendingAttachment> attachments,
-) {
-  setState(() {
-    _attachments = List.of(attachments);
-    _currentStep = 2;
-  });
-}
 
-void _saveAttachmentsAndContinue(
-  List<PendingAttachment> attachments,
-) {
-  setState(() {
-    _attachments = List.of(attachments);
-    _currentStep = 4;
-  });
-}
+  void _saveAttachmentsAndBack(List<PendingAttachment> attachments) {
+    setState(() {
+      _attachments = List.of(attachments);
+      _currentStep = 2;
+    });
+  }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'Sin fecha';
-
-    return '${date.day.toString().padLeft(2, '0')}/'
-        '${date.month.toString().padLeft(2, '0')}/'
-        '${date.year}';
+  void _saveAttachmentsAndContinue(List<PendingAttachment> attachments) {
+    setState(() {
+      _attachments = List.of(attachments);
+      _currentStep = 4;
+    });
   }
 
   @override
@@ -127,107 +105,114 @@ void _saveAttachmentsAndContinue(
         onBack: _saveDetailsAndBack,
         onContinue: _saveDetailsAndContinue,
       );
-   } else if (_currentStep == 3) {
-  content = AttachmentsStep(
-    services: _selectedServices,
-    initialAttachments: _attachments,
-    onBack: _saveAttachmentsAndBack,
-    onContinue: _saveAttachmentsAndContinue,
-  );
-} else {
-  content = _buildStep5Preview();
-}
+    } else if (_currentStep == 3) {
+      content = AttachmentsStep(
+        services: _selectedServices,
+        initialAttachments: _attachments,
+        onBack: _saveAttachmentsAndBack,
+        onContinue: _saveAttachmentsAndContinue,
+      );
+    } else {
+      content = ConfirmationStep(
+        generalInfo: _generalInfo!,
+        services: _selectedServices,
+        details: _serviceDetails,
+        attachments: _attachments,
+        onBack: () => _goToStep(3),
+      );
+    }
+
+    final progress = (_currentStep + 1) / 5;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nueva solicitud'),
-      ),
+      backgroundColor: AppColors.backgroundCream,
       body: SafeArea(
-        child: content,
-      ),
-    );
-  }
-
-  Widget _buildStep5Preview() {
-    final theme = Theme.of(context);
-
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        LinearProgressIndicator(
-          value: 0.8,
-          borderRadius: BorderRadius.circular(8),
-        ),
-
-        const SizedBox(height: 16),
-
-        Text(
-          'Paso 5 de 5',
-          style: TextStyle(
-            color: theme.colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Text(
-          'Detalles registrados',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        const Text(
-          'Vista previa temporal. Todavía no se ha '
-          'enviado ninguna solicitud.',
-        ),
-
-        const SizedBox(height: 24),
-
-        ..._selectedServices.map((service) {
-          final detail = _serviceDetails[service.id];
-
-          return Card(
-            child: ListTile(
-              title: Text(service.name),
-              subtitle: Text(
-                '${detail?.description ?? ""}\n'
-                'Fecha: ${_formatDate(detail?.requiredDate)}',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Encabezado limpio estilo Figma (sin AppBar guinda plano)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 24, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Material(
+                        color: AppColors.surfaceWhite,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(color: AppColors.borderSubtle),
+                        ),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          onTap: () {
+                            if (_currentStep > 0) {
+                              _goToStep(_currentStep - 1);
+                            } else {
+                              Navigator.of(context).maybePop();
+                            }
+                          },
+                          child: const SizedBox(
+                            width: 42,
+                            height: 42,
+                            child: Icon(
+                              Icons.arrow_back_rounded,
+                              color: AppColors.textDark,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PASO ${_currentStep + 1} DE 5',
+                              style: const TextStyle(
+                                color: AppColors.secondaryGold,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Nueva solicitud',
+                              style: TextStyle(
+                                color: AppColors.textDark,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 6,
+                      backgroundColor: AppColors.borderSubtle,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.primaryGuinda,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          );
-        }),
-            const SizedBox(height: 16),
 
-Text(
-  'Archivos adjuntos (${_attachments.length})',
-  style: const TextStyle(
-    fontSize: 17,
-    fontWeight: FontWeight.bold,
-  ),
-),
-
-const SizedBox(height: 8),
-
-if (_attachments.isEmpty)
-  const Text('No se agregaron archivos opcionales.'),
-
-..._attachments.map(
-  (attachment) => ListTile(
-    leading: const Icon(Icons.attach_file),
-    title: Text(attachment.file.name),
-  ),
-),
-        const SizedBox(height: 24),
-
-        OutlinedButton(
-          onPressed: () => _goToStep(3),
-          child: const Text('Volver a archivos adjuntos'),
+            // Contenido del paso activo
+            Expanded(child: content),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

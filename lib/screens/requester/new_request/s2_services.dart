@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../../features/requests/service_catalog_service.dart';
@@ -18,14 +17,11 @@ class ServiceSelectionStep extends StatefulWidget {
   });
 
   @override
-  State<ServiceSelectionStep> createState() =>
-      _ServiceSelectionStepState();
+  State<ServiceSelectionStep> createState() => _ServiceSelectionStepState();
 }
 
-class _ServiceSelectionStepState
-    extends State<ServiceSelectionStep> {
-  final ServiceCatalogService _catalogService =
-      ServiceCatalogService();
+class _ServiceSelectionStepState extends State<ServiceSelectionStep> {
+  final ServiceCatalogService _catalogService = ServiceCatalogService();
 
   late Set<String> _selectedIds;
 
@@ -37,9 +33,7 @@ class _ServiceSelectionStepState
   void initState() {
     super.initState();
 
-    _selectedIds = widget.initialSelection
-        .map((service) => service.id)
-        .toSet();
+    _selectedIds = widget.initialSelection.map((service) => service.id).toSet();
 
     _loadCatalog();
   }
@@ -61,9 +55,7 @@ class _ServiceSelectionStepState
 
       setState(() {
         _catalog = catalog;
-        _selectedIds.removeWhere(
-          (id) => !availableIds.contains(id),
-        );
+        _selectedIds.removeWhere((id) => !availableIds.contains(id));
         _isLoading = false;
       });
 
@@ -75,8 +67,7 @@ class _ServiceSelectionStepState
 
       setState(() {
         _isLoading = false;
-        _errorMessage =
-            'No se pudo cargar el catálogo de servicios.';
+        _errorMessage = 'No se pudo cargar el catálogo de servicios.';
       });
     }
   }
@@ -105,9 +96,7 @@ class _ServiceSelectionStepState
     if (_selectedIds.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            'Selecciona al menos un servicio para continuar.',
-          ),
+          content: Text('Selecciona al menos un servicio para continuar.'),
         ),
       );
       return;
@@ -137,24 +126,20 @@ class _ServiceSelectionStepState
         initiallyExpanded: true,
         title: Text(
           category.name,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          '$selectedCount de ${services.length} seleccionados',
-        ),
+        subtitle: Text('$selectedCount de ${services.length} seleccionados'),
         children: services.map((service) {
           final isSelected = _selectedIds.contains(service.id);
 
           return CheckboxListTile(
-  value: isSelected,
-  controlAffinity: ListTileControlAffinity.leading,
-  title: Text(service.name),
-  onChanged: (value) {
-    _toggleService(service.id, value ?? false);
-  },
-);
+            value: isSelected,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(service.name),
+            onChanged: (value) {
+              _toggleService(service.id, value ?? false);
+            },
+          );
         }).toList(),
       ),
     );
@@ -171,16 +156,12 @@ class _ServiceSelectionStepState
           children: [
             Text(
               'Servicios seleccionados (${selected.length})',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
 
             if (selected.isEmpty)
-              const Text(
-                'Todavía no has seleccionado servicios.',
-              )
+              const Text('Todavía no has seleccionado servicios.')
             else
               Wrap(
                 spacing: 8,
@@ -203,9 +184,7 @@ class _ServiceSelectionStepState
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     if (_errorMessage != null) {
@@ -217,19 +196,13 @@ class _ServiceSelectionStepState
             children: [
               const Icon(Icons.error_outline, size: 48),
               const SizedBox(height: 12),
-              Text(
-                _errorMessage!,
-                textAlign: TextAlign.center,
-              ),
+              Text(_errorMessage!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadCatalog,
                 child: const Text('Reintentar'),
               ),
-              TextButton(
-                onPressed: widget.onBack,
-                child: const Text('Volver'),
-              ),
+              TextButton(onPressed: widget.onBack, child: const Text('Volver')),
             ],
           ),
         ),
@@ -245,18 +218,13 @@ class _ServiceSelectionStepState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'No hay servicios disponibles.',
-              ),
+              const Text('No hay servicios disponibles.'),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadCatalog,
                 child: const Text('Actualizar catálogo'),
               ),
-              TextButton(
-                onPressed: widget.onBack,
-                child: const Text('Volver'),
-              ),
+              TextButton(onPressed: widget.onBack, child: const Text('Volver')),
             ],
           ),
         ),
@@ -268,12 +236,6 @@ class _ServiceSelectionStepState
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        LinearProgressIndicator(
-          value: 0.4,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        const SizedBox(height: 16),
-
         Text(
           'Paso 2 de 5',
           style: TextStyle(
