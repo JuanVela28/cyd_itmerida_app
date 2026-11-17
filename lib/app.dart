@@ -1,7 +1,7 @@
 import 'package:cyd_itmerida_app/screens/admin/admin_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'screens/requester/requester_home_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/auth_service.dart';
 import 'screens/auth/login_screen.dart';
@@ -25,11 +25,10 @@ final GoRouter _router = GoRouter(
           const _RolePlaceholderScreen(title: 'Operación Staff CyD'),
     ),
     GoRoute(
-      path: '/requester',
-      builder: (context, state) => const _RolePlaceholderScreen(
-        title: 'Mis Solicitudes · Jefe de Depto.',
+  path: '/requester',
+  builder: (context, state) =>
+      const RequesterHomeScreen(),
       ),
-    ),
   ],
 );
 
