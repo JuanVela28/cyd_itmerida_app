@@ -62,7 +62,13 @@ class RequesterHomeScreen extends StatelessWidget {
         ),
         subtitle: Text(description),
         trailing: const Icon(Icons.chevron_right),
-        onTap: () => _showComingSoon(context, title),
+        onTap: () {
+  if (title == 'Nueva solicitud') {
+    context.push('/requester/new');
+  } else {
+    _showComingSoon(context, title);
+  }
+},
       ),
     );
   }

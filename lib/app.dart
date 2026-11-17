@@ -5,6 +5,7 @@ import 'screens/requester/requester_home_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/auth_service.dart';
 import 'screens/auth/login_screen.dart';
+import 'screens/requester/new_request/new_request_screen.dart';
 
 final GoRouter _router = GoRouter(
   initialLocation: '/login',
@@ -29,6 +30,11 @@ final GoRouter _router = GoRouter(
   builder: (context, state) =>
       const RequesterHomeScreen(),
       ),
+    GoRoute(
+  path: '/requester/new',
+  builder: (context, state) =>
+      const NewRequestScreen(),
+    ),
   ],
 );
 
