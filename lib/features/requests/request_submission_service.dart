@@ -15,29 +15,7 @@ class RequestSubmissionService {
   static const String _storageBucket = 'request-attachments';
 
   /// Genera el siguiente folio único del año en curso: ej. CYD-2026-0001
-  Future<String> _generateNextFolio() async {
-    final year = DateTime.now().year;
-    final prefix = 'CYD-$year-';
-
-    final existing = await _supabase
-        .from('requests')
-        .select('folio')
-        .like('folio', '$prefix%')
-        .order('folio', ascending: false)
-        .limit(1);
-
-    int nextNumber = 1;
-    if (existing.isNotEmpty) {
-      final lastFolio = existing.first['folio'] as String;
-      final numericPart = lastFolio.replaceFirst(prefix, '');
-      final parsed = int.tryParse(numericPart);
-      if (parsed != null) {
-        nextNumber = parsed + 1;
-      }
-    }
-
-    return '$prefix${nextNumber.toString().padLeft(4, '0')}';
-  }
+ 
 
   String _formatDateIso(DateTime date) {
     return '${date.year.toString().padLeft(4, '0')}-'
@@ -64,13 +42,14 @@ class RequestSubmissionService {
       throw Exception('No hay una sesión activa.');
     }
 
-    final folio = await _generateNextFolio();
 
     // 1. Insertar cabecera en 'requests'
+    
+    // 1. Registrar solicitud y obtener el folio
+    // generado automáticamente por PostgreSQL.
     final insertedRequest = await _supabase
         .from('requests')
         .insert({
-          'folio': folio,
           'requester_id': user.id,
           'department': generalInfo.department,
           'contact_person': generalInfo.contactPerson,
@@ -78,10 +57,12 @@ class RequestSubmissionService {
           'request_date': _formatDateIso(DateTime.now()),
           'status': 'pending',
         })
-        .select('id')
+        .select('id, folio')
         .single();
 
     final String requestId = insertedRequest['id'] as String;
+    final String folio = insertedRequest['folio'] as String;
+
 
     // 2. Insertar cada servicio seleccionado en 'request_services'
     final serviceRows = services.map((service) {
