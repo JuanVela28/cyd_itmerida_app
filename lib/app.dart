@@ -1,4 +1,5 @@
 import 'package:cyd_itmerida_app/screens/admin/admin_dashboard_screen.dart';
+import 'package:cyd_itmerida_app/screens/secretary/schedule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'screens/requester/requester_home_screen.dart';
@@ -17,8 +18,7 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/secretary',
-      builder: (context, state) =>
-          const _RolePlaceholderScreen(title: 'Agenda Secretaría'),
+      builder: (context, state) => const ScheduleScreen(),
     ),
     GoRoute(
       path: '/staff',
