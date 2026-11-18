@@ -34,8 +34,8 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     _selectedServices = List.of(services);
 
     final selectedIds = services.map((service) => service.id).toSet();
-
     _serviceDetails.removeWhere((id, detail) => !selectedIds.contains(id));
+
     final requiresStudentList = services.any((service) {
       final name = service.name.trim().toLowerCase();
       return name == 'constancias' || name == 'carpetas';
@@ -49,9 +49,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   }
 
   void _goToStep(int step) {
-    setState(() {
-      _currentStep = step;
-    });
+    setState(() => _currentStep = step);
   }
 
   void _saveDetailsAndBack(Map<String, ServiceDetailData> details) {
@@ -123,94 +121,124 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     }
 
     final progress = (_currentStep + 1) / 5;
+    final baseTheme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: AppColors.backgroundCream,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Encabezado limpio estilo Figma (sin AppBar guinda plano)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 24, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Material(
-                        color: AppColors.surfaceWhite,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          side: const BorderSide(color: AppColors.borderSubtle),
-                        ),
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(14),
-                          onTap: () {
-                            if (_currentStep > 0) {
-                              _goToStep(_currentStep - 1);
-                            } else {
-                              Navigator.of(context).maybePop();
-                            }
-                          },
-                          child: const SizedBox(
-                            width: 42,
-                            height: 42,
-                            child: Icon(
-                              Icons.arrow_back_rounded,
-                              color: AppColors.textDark,
-                              size: 20,
+    // La tipografia Roboto se aplica solo a este asistente de solicitud.
+    // No modifica el diseño de inicio, login, administración ni seguimiento.
+    final requestTheme = baseTheme.copyWith(
+      textTheme: baseTheme.textTheme.apply(fontFamily: 'Roboto'),
+      primaryTextTheme: baseTheme.primaryTextTheme.apply(fontFamily: 'Roboto'),
+      inputDecorationTheme: baseTheme.inputDecorationTheme.copyWith(
+        filled: true,
+        fillColor: AppColors.surfaceWhite,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 14,
+        ),
+        hintStyle: const TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 13,
+        ),
+        labelStyle: const TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 13,
+        ),
+      ),
+    );
+
+    return Theme(
+      data: requestTheme,
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundCream,
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                decoration: const BoxDecoration(
+                  color: AppColors.surfaceWhite,
+                  border: Border(
+                    bottom: BorderSide(color: AppColors.borderSubtle),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Material(
+                          color: AppColors.backgroundCream,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(12),
+                            onTap: () {
+                              if (_currentStep > 0) {
+                                _goToStep(_currentStep - 1);
+                              } else {
+                                Navigator.of(context).maybePop();
+                              }
+                            },
+                            child: const SizedBox(
+                              width: 42,
+                              height: 42,
+                              child: Icon(
+                                Icons.arrow_back_rounded,
+                                color: AppColors.textDark,
+                                size: 20,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'PASO ${_currentStep + 1} DE 5',
-                              style: const TextStyle(
-                                color: AppColors.secondaryGold,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.2,
-                              ),
+                        const SizedBox(width: 12),
+                        const Expanded(
+                          child: Text(
+                            'Nueva solicitud',
+                            style: TextStyle(
+                              color: AppColors.textDark,
+                              fontSize: 19,
+                              fontWeight: FontWeight.w800,
+                              fontFamily: 'Roboto',
                             ),
-                            const SizedBox(height: 2),
-                            const Text(
-                              'Nueva solicitud',
-                              style: TextStyle(
-                                color: AppColors.textDark,
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                              ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 7,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryGuindaLight,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${_currentStep + 1} de 5',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.primaryGuinda,
+                              fontWeight: FontWeight.w800,
                             ),
-                          ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 5,
+                        backgroundColor: AppColors.borderSubtle,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.primaryGuinda,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 6,
-                      backgroundColor: AppColors.borderSubtle,
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        AppColors.primaryGuinda,
-                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-
-            // Contenido del paso activo
-            Expanded(child: content),
-          ],
+              Expanded(child: content),
+            ],
+          ),
         ),
       ),
     );
