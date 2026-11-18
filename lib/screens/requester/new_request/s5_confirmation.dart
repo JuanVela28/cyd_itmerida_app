@@ -31,6 +31,7 @@ class ConfirmationStep extends StatefulWidget {
 class _ConfirmationStepState extends State<ConfirmationStep> {
   final _submissionService = RequestSubmissionService();
   bool _isSubmitting = false;
+  bool _partialSubmission = false;
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Sin fecha';
@@ -55,12 +56,31 @@ class _ConfirmationStepState extends State<ConfirmationStep> {
       await _showSuccessDialog(folio);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _isSubmitting = false);
+
+      final isPartial = e is PartialSubmissionException;
+
+      setState(() {
+        _isSubmitting = false;
+        _partialSubmission = isPartial;
+      });
+
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text('Error al enviar solicitud'),
-          content: Text('$e'),
+          title: Text(
+            isPartial
+                ? 'Solicitud parcialmente registrada'
+                : 'Error al enviar solicitud',
+          ),
+          content: Text(
+            isPartial
+                ? 'Se creó la solicitud con folio ${e.folio}, '
+                      'pero no se completaron todos sus datos '
+                      'o archivos. No vuelvas a enviarla. '
+                      'Comunícate con el administrador para '
+                      'revisar este folio.'
+                : 'No se pudo completar el envío: $e',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
@@ -377,7 +397,7 @@ class _ConfirmationStepState extends State<ConfirmationStep> {
             Expanded(
               flex: 2,
               child: ElevatedButton.icon(
-                onPressed: _isSubmitting ? null : _submit,
+                onPressed: _isSubmitting || _partialSubmission ? null : _submit,
                 icon: _isSubmitting
                     ? const SizedBox(
                         width: 20,

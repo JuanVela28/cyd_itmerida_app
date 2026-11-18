@@ -3,7 +3,7 @@ import 'package:cyd_itmerida_app/screens/admin/request_management_screen.dart';
 import 'package:cyd_itmerida_app/screens/secretary/schedule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'screens/requester/my_requests_screen.dart';
 import 'screens/requester/requester_home_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/auth_service.dart';
@@ -41,6 +41,10 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/requester/new',
       builder: (context, state) => const NewRequestScreen(),
+    ),
+    GoRoute(
+      path: '/requester/requests',
+      builder: (context, state) => const MyRequestsScreen(),
     ),
   ],
 );
