@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../features/requests/service_catalog_service.dart';
+import '../../../core/constants/attachment_limits.dart';
 
 enum AttachmentCategory { generalReference, certificatesList, eventPhotosPdf }
 
 extension AttachmentCategoryInfo on AttachmentCategory {
+  /// Identificador de la categoría en la base de datos.
   String get databaseValue {
     return switch (this) {
       AttachmentCategory.generalReference => 'general_reference',
@@ -15,11 +17,15 @@ extension AttachmentCategoryInfo on AttachmentCategory {
     };
   }
 
+  /// Define los formatos autorizados para cada categoría.
   List<String> get allowedExtensions {
     return switch (this) {
-      AttachmentCategory.generalReference => ['pdf', 'jpg', 'jpeg', 'png', 'docx'],
-      AttachmentCategory.certificatesList => ['xlsx', 'csv'],
-      AttachmentCategory.eventPhotosPdf => ['pdf'],
+      AttachmentCategory.generalReference => AttachmentLimits.allowedExtensions,
+
+      AttachmentCategory.certificatesList =>
+        AttachmentLimits.spreadsheetExtensions,
+
+      AttachmentCategory.eventPhotosPdf => AttachmentLimits.pdfExtensions,
     };
   }
 }
@@ -55,8 +61,6 @@ class AttachmentsStep extends StatefulWidget {
 }
 
 class _AttachmentsStepState extends State<AttachmentsStep> {
-  static const int _maxFileBytes = 20 * 1024 * 1024;
-
   late final List<PendingAttachment> _attachments;
   bool _isPicking = false;
 
@@ -82,9 +86,11 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
 
   Future<void> _pickFiles(AttachmentCategory category) async {
     if (_isPicking) return;
+
     setState(() => _isPicking = true);
 
     try {
+      // Abre el selector con los formatos permitidos para la categoría.
       final files = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: category.allowedExtensions,
@@ -94,36 +100,52 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
 
       final accepted = <PendingAttachment>[];
       var rejected = 0;
+      var oversized = 0;
 
       for (final file in files) {
         final name = file.name.trim();
+
         final extension = name.contains('.')
             ? name.split('.').last.toLowerCase()
             : '';
 
+        // Comprueba que la extensión esté permitida.
         if (!category.allowedExtensions.contains(extension)) {
           rejected++;
           continue;
         }
 
+        // Obtiene el tamaño real del archivo.
         final int? size = file.lengthSync() ?? await file.length();
+
         if (!mounted) return;
-        if (size == null || size <= 0 || size > _maxFileBytes) {
+
+        // Rechaza archivos vacíos o cuyo tamaño no pueda determinarse.
+        if (size == null || size <= 0) {
           rejected++;
           continue;
         }
 
+        // Rechaza archivos mayores al límite institucional.
+        if (!AttachmentLimits.isValidSize(size)) {
+          oversized++;
+          continue;
+        }
+
+        // Evita agregar archivos duplicados.
         final duplicate = [..._attachments, ...accepted].any(
           (item) =>
               item.category == category &&
               item.file.name.toLowerCase() == name.toLowerCase() &&
               item.sizeBytes == size,
         );
+
         if (duplicate) {
           rejected++;
           continue;
         }
 
+        // Agrega únicamente los archivos válidos.
         accepted.add(
           PendingAttachment(file: file, category: category, sizeBytes: size),
         );
@@ -131,15 +153,32 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
 
       setState(() => _attachments.addAll(accepted));
 
-      final message =
-          '${accepted.length} archivo(s) agregado(s).'
-          '${rejected > 0 ? ' $rejected rechazado(s) o duplicado(s).' : ''}';
-      _showMessage(message);
+      // Construye un mensaje dependiendo del resultado.
+      final messages = <String>[];
+
+      if (accepted.isNotEmpty) {
+        messages.add('${accepted.length} archivo(s) agregado(s).');
+      }
+
+      if (oversized > 0) {
+        messages.add(
+          '$oversized archivo(s) superan el límite de '
+          '${AttachmentLimits.maxFileMB} MB.',
+        );
+      }
+
+      if (rejected > 0) {
+        messages.add('$rejected archivo(s) inválidos o duplicados.');
+      }
+
+      _showMessage(messages.join(' '));
     } catch (error) {
       debugPrint('File picker error: $error');
       _showMessage('No se pudieron seleccionar los archivos.');
     } finally {
-      if (mounted) setState(() => _isPicking = false);
+      if (mounted) {
+        setState(() => _isPicking = false);
+      }
     }
   }
 
@@ -149,16 +188,41 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
 
   void _goBack() => widget.onBack(List.of(_attachments));
 
+  /// Valida los archivos requeridos antes de continuar.
   void _continue() {
+    // Constancias y carpetas requieren una lista de alumnos.
     if (_requiresStudentList &&
         !_attachments.any(
           (item) => item.category == AttachmentCategory.certificatesList,
         )) {
       _showMessage(
-        'Debes agregar una lista XLSX o CSV para constancias o carpetas.',
+        'Debes agregar una lista XLS o XLSX '
+        'para constancias o carpetas.',
       );
       return;
     }
+
+    // Verifica nuevamente todos los archivos seleccionados.
+    for (final item in _attachments) {
+      final extension = AttachmentLimits.getExtension(item.file.name);
+
+      if (!item.category.allowedExtensions.contains(extension)) {
+        _showMessage(
+          'El archivo ${item.file.name} tiene un formato no permitido.',
+        );
+        return;
+      }
+
+      if (!AttachmentLimits.isValidSize(item.sizeBytes)) {
+        _showMessage(
+          'El archivo ${item.file.name} está vacío o '
+          'supera el límite de ${AttachmentLimits.maxFileMB} MB.',
+        );
+        return;
+      }
+    }
+
+    // Continúa hacia la pantalla de confirmación.
     widget.onContinue(List.of(_attachments));
   }
 
@@ -266,12 +330,19 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline, size: 17, color: AppColors.textMuted),
+                  Icon(
+                    Icons.info_outline,
+                    size: 17,
+                    color: AppColors.textMuted,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Todavía no hay archivos agregados.',
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -289,8 +360,11 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.insert_drive_file_outlined,
-                        color: AppColors.primaryGuinda, size: 19),
+                    const Icon(
+                      Icons.insert_drive_file_outlined,
+                      color: AppColors.primaryGuinda,
+                      size: 19,
+                    ),
                     const SizedBox(width: 9),
                     Expanded(
                       child: Column(
@@ -309,7 +383,9 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
                           Text(
                             '${megabytes.toStringAsFixed(2)} MB',
                             style: const TextStyle(
-                                color: AppColors.textMuted, fontSize: 11),
+                              color: AppColors.textMuted,
+                              fontSize: 11,
+                            ),
                           ),
                         ],
                       ),
@@ -406,13 +482,15 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
               ),
               const SizedBox(height: 6),
               const Text(
-                'Agrega documentos e imágenes de referencia cuando sea necesario.',
+                'Agrega documentos PDF u hojas de cálculo de Excel cuando sea necesario.',
                 style: TextStyle(color: AppColors.textMuted, fontSize: 13),
               ),
               const SizedBox(height: 20),
               _attachmentSection(
                 title: 'Referencias generales',
-                description: 'Imágenes y documentos que ayuden a explicar tu solicitud.',
+                description:
+                    'Documentos PDF u hojas de cálculo de Excel '
+                    'que ayuden a explicar tu solicitud.',
                 category: AttachmentCategory.generalReference,
               ),
               if (_requiresStudentList)
@@ -450,8 +528,13 @@ class _AttachmentsStepState extends State<AttachmentsStep> {
                     ),
                     const SizedBox(height: 5),
                     const Text(
-                      'Máximo 20 MB por archivo. La carga se realiza al enviar la solicitud.',
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      '${AttachmentLimits.limitMessage}\n'
+                      '${AttachmentLimits.formatsMessage}\n'
+                      'La carga se realiza al enviar la solicitud.',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),

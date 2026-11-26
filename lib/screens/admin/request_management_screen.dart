@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/requests/request_management_service.dart';
 import '../../features/schedule/schedule_service.dart';
+import '../../shared/widgets/institutional_logos.dart';
 
 class RequestManagementScreen extends StatefulWidget {
   const RequestManagementScreen({super.key});
@@ -103,6 +104,14 @@ class _RequestManagementScreenState extends State<RequestManagementScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Logotipos institucionales.
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+              child: Center(
+                child: InstitutionalLogos(height: 44, withBackground: true),
+              ),
+            ),
+
             // Encabezado limpio estilo Figma
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 24, 12),
@@ -493,6 +502,14 @@ class _RequestDetailBottomSheetState extends State<_RequestDetailBottomSheet> {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
+
+          // Logotipos institucionales.
+          const Center(
+            child: InstitutionalLogos(height: 40, withBackground: true),
+          ),
+
+          const SizedBox(height: 12),
+
           Row(
             children: [
               Container(
@@ -942,6 +959,13 @@ class _ScheduleFromRequestSheetState extends State<_ScheduleFromRequestSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Logotipos institucionales.
+            const Center(
+              child: InstitutionalLogos(height: 40, withBackground: true),
+            ),
+
+            const SizedBox(height: 16),
+
             const Text(
               'Agendar en calendario CyD',
               style: TextStyle(
@@ -950,6 +974,7 @@ class _ScheduleFromRequestSheetState extends State<_ScheduleFromRequestSheet> {
                 color: AppColors.textDark,
               ),
             ),
+
             const SizedBox(height: 16),
             TextField(
               controller: _titleController,

@@ -5,6 +5,7 @@ import '../../features/schedule/schedule_service.dart';
 import '../../shared/models/schedule_event_model.dart';
 import 'create_event_screen.dart';
 import 'event_detail_sheet.dart';
+import '../../shared/widgets/institutional_logos.dart';
 
 class ScheduleScreen extends StatefulWidget {
   /// Permite ocultar el botón '+' si quien entra es rol 'staff' (solo consulta)
@@ -147,6 +148,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Identidad institucional compartida por todos los roles.
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 12, 24, 0),
+              child: Center(
+                child: InstitutionalLogos(height: 44, withBackground: true),
+              ),
+            ),
             // 1. Encabezado superior (Mes/Año, Título "Agenda" y botón '+')
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),

@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
+import '../../shared/widgets/institutional_logos.dart';
 
 class RequesterHomeScreen extends StatefulWidget {
   const RequesterHomeScreen({super.key});
@@ -114,14 +115,9 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.primaryGuinda,
-            AppColors.primaryGuindaDark,
-          ],
+          colors: [AppColors.primaryGuinda, AppColors.primaryGuindaDark],
         ),
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(30),
-        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,27 +125,8 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 9,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.22),
-                  ),
-                ),
-                child: const Text(
-                  'CyD',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 19,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
+              // Identidad institucional.
+              const Flexible(child: InstitutionalLogos(height: 52)),
               IconButton(
                 onPressed: _isSigningOut ? null : _signOut,
                 tooltip: 'Cerrar sesión',
@@ -162,10 +139,7 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Icon(
-                        Icons.logout_rounded,
-                        color: Colors.white,
-                      ),
+                    : const Icon(Icons.logout_rounded, color: Colors.white),
               ),
             ],
           ),
@@ -328,10 +302,7 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(19),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 19,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 19),
             child: Row(
               children: [
                 Container(
@@ -346,9 +317,7 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
                   child: Icon(
                     icon,
                     size: 27,
-                    color: primary
-                        ? Colors.white
-                        : AppColors.primaryGuinda,
+                    color: primary ? Colors.white : AppColors.primaryGuinda,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -392,15 +361,8 @@ class _RequesterHomeScreenState extends State<RequesterHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final currentTheme = Theme.of(context);
-
-    // Use a clean font locally without changing the global app theme.
-    final screenTheme = currentTheme.copyWith(
-      textTheme: currentTheme.textTheme.apply(fontFamily: 'Roboto'),
-      primaryTextTheme: currentTheme.primaryTextTheme.apply(
-        fontFamily: 'Roboto',
-      ),
-    );
+    // Utiliza la tipografía definida en el tema institucional.
+    final screenTheme = Theme.of(context);
 
     return Theme(
       data: screenTheme,

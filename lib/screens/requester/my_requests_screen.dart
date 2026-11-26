@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../features/requests/my_requests_service.dart';
+import '../../shared/widgets/institutional_logos.dart';
 
 class MyRequestsScreen extends StatefulWidget {
   const MyRequestsScreen({super.key});
@@ -113,19 +114,17 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   }
 
   Future<void> _refreshAll() async {
-    await Future.wait<void>([
-      _loadProfile(),
-      _loadRequests(),
-    ]);
+    await Future.wait<void>([_loadProfile(), _loadRequests()]);
   }
 
   List<MyRequest> get _filteredRequests {
     final search = _searchQuery.trim().toLowerCase();
 
     return _requests.where((request) {
-      final matchesStatus = _selectedFilter == 'all' ||
-          request.status == _selectedFilter;
-      final matchesSearch = search.isEmpty ||
+      final matchesStatus =
+          _selectedFilter == 'all' || request.status == _selectedFilter;
+      final matchesSearch =
+          search.isEmpty ||
           request.folio.toLowerCase().contains(search) ||
           request.activityName.toLowerCase().contains(search);
       return matchesStatus && matchesSearch;
@@ -205,9 +204,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
             return Container(
               decoration: const BoxDecoration(
                 color: AppColors.surfaceWhite,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(24),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: ListView(
                 controller: scrollController,
@@ -223,7 +220,14 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 16),
+
+                  const Center(
+                    child: InstitutionalLogos(height: 40, withBackground: true),
+                  ),
+
                   const SizedBox(height: 20),
+
                   Text(
                     request.folio,
                     style: const TextStyle(
@@ -234,9 +238,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                   const SizedBox(height: 8),
                   Text(
                     request.activityName,
-                    style: Theme.of(context)
-                        .textTheme
-                        .headlineSmall
+                    style: Theme.of(context).textTheme.headlineSmall
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 12),
@@ -302,9 +304,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                         color: AppColors.primaryGuinda,
                       ),
                       title: Text(attachment.fileName),
-                      subtitle: Text(
-                        _attachmentCategory(attachment.category),
-                      ),
+                      subtitle: Text(_attachmentCategory(attachment.category)),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -380,8 +380,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   }
 
   Widget _buildHeader() {
-    final pending =
-        _requests.where((request) => request.status == 'pending').length;
+    final pending = _requests
+        .where((request) => request.status == 'pending')
+        .length;
     final inReview = _requests
         .where((request) => request.status == 'under_review')
         .length;
@@ -390,10 +391,10 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
     final initials = _userName == 'Cargando perfil...'
         ? '...'
         : userWords
-            .where((word) => word.isNotEmpty)
-            .take(2)
-            .map((word) => word[0].toUpperCase())
-            .join();
+              .where((word) => word.isNotEmpty)
+              .take(2)
+              .map((word) => word[0].toUpperCase())
+              .join();
 
     return Column(
       children: [
@@ -401,10 +402,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
           width: double.infinity,
           padding: const EdgeInsets.fromLTRB(22, 24, 22, 28),
           decoration: const BoxDecoration(
-          color: AppColors.primaryGuinda,
-          borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(30),
-            ),
+            color: AppColors.primaryGuinda,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -422,29 +421,9 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                     ),
                     icon: const Icon(Icons.arrow_back_rounded),
                   ),
-                  const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 9,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.20),
-                      ),
-                    ),
-                    child: const Text(
-                      'CyD',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                  const Expanded(
+                    child: Center(child: InstitutionalLogos(height: 48)),
                   ),
-                  const Spacer(),
                   IconButton(
                     onPressed: _isLoading ? null : _refreshAll,
                     tooltip: 'Actualizar solicitudes',
@@ -867,7 +846,12 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                         else if (filtered.isEmpty)
                           SliverToBoxAdapter(
                             child: Padding(
-                              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+                              padding: const EdgeInsets.fromLTRB(
+                                24,
+                                24,
+                                24,
+                                32,
+                              ),
                               child: Column(
                                 children: [
                                   const Icon(

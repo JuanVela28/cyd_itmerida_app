@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/schedule/schedule_service.dart';
 import '../../shared/models/schedule_event_model.dart';
+import '../../shared/widgets/institutional_logos.dart';
 
 class CreateEventSheet extends StatefulWidget {
   final DateTime initialDate;
@@ -221,6 +222,12 @@ class _CreateEventSheetState extends State<CreateEventSheet> {
                   ),
                 ),
               ),
+
+              const Center(
+                child: InstitutionalLogos(height: 40, withBackground: true),
+              ),
+
+              const SizedBox(height: 16),
 
               // Título del modal
               Row(

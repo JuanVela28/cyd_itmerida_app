@@ -7,6 +7,7 @@ import 's2_services.dart';
 import 's3_service_details.dart';
 import 's4_attachments.dart';
 import 's5_confirmation.dart';
+import '../../../shared/widgets/institutional_logos.dart';
 
 class NewRequestScreen extends StatefulWidget {
   const NewRequestScreen({super.key});
@@ -123,11 +124,9 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
     final progress = (_currentStep + 1) / 5;
     final baseTheme = Theme.of(context);
 
-    // La tipografia Roboto se aplica solo a este asistente de solicitud.
-    // No modifica el diseño de inicio, login, administración ni seguimiento.
+    // Conserva el tema institucional y personaliza los campos
+    // del asistente de solicitudes.
     final requestTheme = baseTheme.copyWith(
-      textTheme: baseTheme.textTheme.apply(fontFamily: 'Roboto'),
-      primaryTextTheme: baseTheme.primaryTextTheme.apply(fontFamily: 'Roboto'),
       inputDecorationTheme: baseTheme.inputDecorationTheme.copyWith(
         filled: true,
         fillColor: AppColors.surfaceWhite,
@@ -135,14 +134,8 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
           horizontal: 14,
           vertical: 14,
         ),
-        hintStyle: const TextStyle(
-          color: AppColors.textMuted,
-          fontSize: 13,
-        ),
-        labelStyle: const TextStyle(
-          color: AppColors.textMuted,
-          fontSize: 13,
-        ),
+        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+        labelStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
       ),
     );
 
@@ -164,6 +157,16 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                 ),
                 child: Column(
                   children: [
+                    // Identidad institucional del formulario.
+                    const Center(
+                      child: InstitutionalLogos(
+                        height: 44,
+                        withBackground: true,
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
                     Row(
                       children: [
                         Material(
@@ -197,7 +200,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
                               color: AppColors.textDark,
                               fontSize: 19,
                               fontWeight: FontWeight.w800,
-                              fontFamily: 'Roboto',
                             ),
                           ),
                         ),

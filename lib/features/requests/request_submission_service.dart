@@ -6,6 +6,7 @@ import '../../screens/requester/new_request/s1_general_info.dart';
 import '../../screens/requester/new_request/s3_service_details.dart';
 import '../../screens/requester/new_request/s4_attachments.dart';
 import 'service_catalog_service.dart';
+import '../../core/constants/attachment_limits.dart';
 
 class PartialSubmissionException implements Exception {
   final String requestId;
@@ -45,6 +46,55 @@ class RequestSubmissionService {
     return '$h:$m';
   }
 
+  /// Valida los formatos y tamaños antes de registrar la solicitud.
+  Future<void> _validateAttachments(List<PendingAttachment> attachments) async {
+    for (final attachment in attachments) {
+      final name = attachment.file.name;
+
+      final extension = AttachmentLimits.getExtension(name);
+
+      // Valida el formato institucional.
+      if (!AttachmentLimits.isValidExtension(name)) {
+        throw Exception(
+          'El archivo $name tiene un formato no permitido. '
+          '${AttachmentLimits.formatsMessage}',
+        );
+      }
+
+      // Valida el formato correspondiente a su categoría.
+      if (!attachment.category.allowedExtensions.contains(extension)) {
+        throw Exception(
+          'El archivo $name no corresponde a los formatos '
+          'permitidos para su categoría.',
+        );
+      }
+
+      // Verifica que exista una ruta local.
+      final path = attachment.file.path;
+
+      if (path == null || path.isEmpty) {
+        throw Exception('No se pudo localizar el archivo $name.');
+      }
+
+      final file = File(path);
+
+      // Comprueba que el archivo todavía exista.
+      if (!await file.exists()) {
+        throw Exception('El archivo $name ya no está disponible.');
+      }
+
+      // Comprueba el tamaño real del archivo.
+      final size = await file.length();
+
+      if (!AttachmentLimits.isValidSize(size)) {
+        throw Exception(
+          'El archivo $name está vacío o supera '
+          'el límite de ${AttachmentLimits.maxFileMB} MB.',
+        );
+      }
+    }
+  }
+
   /// Envía la solicitud completa a Supabase y devuelve el folio generado
   Future<String> submitRequest({
     required GeneralInfoData generalInfo,
@@ -56,11 +106,10 @@ class RequestSubmissionService {
     if (user == null) {
       throw Exception('No hay una sesión activa.');
     }
+    // Valida los adjuntos antes de crear registros en Supabase.
+    await _validateAttachments(attachments);
 
-    // 1. Insertar cabecera en 'requests'
-
-    // 1. Registrar solicitud y obtener el folio
-    // generado automáticamente por PostgreSQL.
+    // 1. Registrar solicitud y obtener el folio generado automáticamente por PostgreSQL.
     final insertedRequest = await _supabase
         .from('requests')
         .insert({

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/schedule/schedule_service.dart';
 import '../../shared/models/schedule_event_model.dart';
+import '../../shared/widgets/institutional_logos.dart';
 
 class EventDetailSheet extends StatefulWidget {
   final ScheduleEventModel event;
@@ -200,6 +201,12 @@ class _EventDetailSheetState extends State<EventDetailSheet> {
               ),
             ),
           ),
+
+          const Center(
+            child: InstitutionalLogos(height: 40, withBackground: true),
+          ),
+
+          const SizedBox(height: 12),
 
           // Etiquetas superiores (Tipo + Estado) y botón cerrar
           Row(
