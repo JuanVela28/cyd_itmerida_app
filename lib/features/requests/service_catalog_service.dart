@@ -1,14 +1,10 @@
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ServiceCategory {
   final String id;
   final String name;
 
-  const ServiceCategory({
-    required this.id,
-    required this.name,
-  });
+  const ServiceCategory({required this.id, required this.name});
 
   factory ServiceCategory.fromJson(Map<String, dynamic> json) {
     return ServiceCategory(
@@ -39,15 +35,18 @@ class ServiceOption {
     Map<String, dynamic> json, {
     String categoryName = '',
   }) {
+    final rawName = (json['name'] as String).trim();
+    final displayName = rawName.toLowerCase() == 'banner'
+        ? 'Banner (para página web)'
+        : rawName;
+
     return ServiceOption(
       id: json['id'].toString(),
       categoryId: json['category_id'].toString(),
       categoryName: categoryName,
-      name: json['name'] as String,
-      requiresDimensions:
-          json['requires_dimensions'] as bool? ?? false,
-      requiresQuantity:
-          json['requires_quantity'] as bool? ?? false,
+      name: displayName,
+      requiresDimensions: json['requires_dimensions'] as bool? ?? false,
+      requiresQuantity: json['requires_quantity'] as bool? ?? false,
     );
   }
 }
@@ -56,10 +55,7 @@ class ServiceCatalog {
   final List<ServiceCategory> categories;
   final List<ServiceOption> services;
 
-  const ServiceCatalog({
-    required this.categories,
-    required this.services,
-  });
+  const ServiceCatalog({required this.categories, required this.services});
 }
 
 class ServiceCatalogService {
@@ -88,8 +84,7 @@ class ServiceCatalogService {
         .toList();
 
     final categoryNames = {
-      for (final category in categories)
-        category.id: category.name,
+      for (final category in categories) category.id: category.name,
     };
 
     final services = serviceRows.map((row) {
@@ -101,9 +96,6 @@ class ServiceCatalogService {
       );
     }).toList();
 
-    return ServiceCatalog(
-      categories: categories,
-      services: services,
-    );
+    return ServiceCatalog(categories: categories, services: services);
   }
 }

@@ -184,7 +184,7 @@ class _RequestManagementScreenState extends State<RequestManagementScreen> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: _filters.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final (key, label) = _filters[index];
                   final isSelected = _selectedFilter == key;
@@ -387,6 +387,18 @@ class _RequestDetailBottomSheet extends StatefulWidget {
 class _RequestDetailBottomSheetState extends State<_RequestDetailBottomSheet> {
   bool _isProcessing = false;
 
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return 'Sin fecha';
+
+    final date = DateTime.tryParse(raw);
+
+    if (date == null) return raw;
+
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
+  }
+
   TimeOfDay? _parseTimeOfDay(String? raw) {
     if (raw == null || !raw.contains(':')) return null;
     final parts = raw.split(':');
@@ -572,6 +584,10 @@ class _RequestDetailBottomSheetState extends State<_RequestDetailBottomSheet> {
                 ),
                 const SizedBox(height: 8),
                 ...req.services.map((s) {
+                  final isBanner = s.serviceName.trim().toLowerCase().contains(
+                    'banner',
+                  );
+
                   return Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.all(14),
@@ -588,7 +604,9 @@ class _RequestDetailBottomSheetState extends State<_RequestDetailBottomSheet> {
                           children: [
                             Expanded(
                               child: Text(
-                                s.serviceName,
+                                isBanner
+                                    ? 'Banner (para página web)'
+                                    : s.serviceName,
                                 style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w800,
@@ -610,7 +628,9 @@ class _RequestDetailBottomSheetState extends State<_RequestDetailBottomSheet> {
                                   ),
                                 ),
                                 child: Text(
-                                  s.requiredDate!,
+                                  isBanner
+                                      ? 'Publicación: ${_formatDate(s.requiredDate)}'
+                                      : _formatDate(s.requiredDate),
                                   style: const TextStyle(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w800,
@@ -633,6 +653,15 @@ class _RequestDetailBottomSheetState extends State<_RequestDetailBottomSheet> {
                           spacing: 12,
                           runSpacing: 4,
                           children: [
+                            if (isBanner)
+                              Text(
+                                'Fecha de baja: ${_formatDate(s.endDate)}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryGuinda,
+                                ),
+                              ),
                             if (s.location != null && s.location!.isNotEmpty)
                               Text(
                                 'Lugar: ${s.location}',
@@ -650,7 +679,8 @@ class _RequestDetailBottomSheetState extends State<_RequestDetailBottomSheet> {
                                   color: AppColors.textMuted,
                                 ),
                               ),
-                            if (s.dimensions != null &&
+                            if (!isBanner &&
+                                s.dimensions != null &&
                                 s.dimensions!.isNotEmpty)
                               Text(
                                 'Medidas: ${s.dimensions}',

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../features/auth/auth_service.dart';
 import '../../features/schedule/schedule_service.dart';
+import '../../features/requests/request_management_service.dart';
 import '../../shared/widgets/institutional_logos.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
@@ -16,8 +17,12 @@ class AdminDashboardScreen extends StatefulWidget {
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final _authService = AuthService();
   final _scheduleService = ScheduleService();
+  final _requestService = RequestManagementService();
 
   String _userName = '...';
+
+  int _pendingRequestsCount = 0;
+  int _underReviewRequestsCount = 0;
   int _todayEventsCount = 0;
 
   @override
@@ -26,20 +31,36 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     _loadDashboardData();
   }
 
+  /// Carga y actualiza los indicadores del panel administrativo.
   Future<void> _loadDashboardData() async {
-    final name = await _authService.getCurrentUserName();
-    int todayCount = 0;
     try {
-      todayCount = await _scheduleService.countTodayEvents();
-    } catch (_) {
-      todayCount = 0;
-    }
+      final name = await _authService.getCurrentUserName();
 
-    if (mounted) {
+      final counts = await Future.wait<int>([
+        _requestService.countRequestsByStatus('pending'),
+        _requestService.countRequestsByStatus('under_review'),
+        _scheduleService.countTodayEvents(),
+      ]);
+
+      if (!mounted) return;
+
       setState(() {
         _userName = name;
-        _todayEventsCount = todayCount;
+        _pendingRequestsCount = counts[0];
+        _underReviewRequestsCount = counts[1];
+        _todayEventsCount = counts[2];
       });
+    } catch (e) {
+      debugPrint('Error al cargar el panel administrativo: $e');
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No se pudo actualizar el resumen general.'),
+          backgroundColor: AppColors.errorRed,
+        ),
+      );
     }
   }
 
@@ -132,14 +153,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     children: [
                       _buildStatCard(
                         label: 'Pendientes',
-                        value: '0',
+                        value: '$_pendingRequestsCount',
                         bgColor: AppColors.statusPendingBg,
                         textColor: AppColors.statusPendingText,
                       ),
                       const SizedBox(width: 10),
                       _buildStatCard(
                         label: 'En revisión',
-                        value: '0',
+                        value: '$_underReviewRequestsCount',
                         bgColor: AppColors.statusReviewBg,
                         textColor: AppColors.statusReviewText,
                       ),
@@ -169,7 +190,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     icon: Icons.inbox_rounded,
                     title: 'Solicitudes recibidas',
                     subtitle: 'Revisar, aprobar o rechazar trámites',
-                    onTap: () => context.push('/admin/requests'),
+                    onTap: () async {
+                      await context.push('/admin/requests');
+
+                      if (!mounted) return;
+
+                      await _loadDashboardData();
+                    },
                   ),
                   const SizedBox(height: 12),
                   _buildMenuTile(

@@ -8,6 +8,7 @@ class RequestItemDetail {
   final String description;
   final String? formatType;
   final String? requiredDate;
+  final String? endDate;
   final String? dimensions;
   final String? location;
   final String? scheduleTime;
@@ -20,6 +21,7 @@ class RequestItemDetail {
     required this.description,
     this.formatType,
     this.requiredDate,
+    this.endDate,
     this.dimensions,
     this.location,
     this.scheduleTime,
@@ -35,6 +37,7 @@ class RequestItemDetail {
       description: json['description'] as String? ?? '',
       formatType: json['format_type'] as String?,
       requiredDate: json['required_date'] as String?,
+      endDate: json['end_date'] as String?,
       dimensions: json['dimensions'] as String?,
       location: json['location'] as String?,
       scheduleTime: json['schedule_time'] as String?,
@@ -122,6 +125,17 @@ class RequestManagementService {
   final SupabaseClient _supabase = Supabase.instance.client;
   final ScheduleService _scheduleService = ScheduleService();
 
+  /// Cuenta las solicitudes registradas según su estado.
+  Future<int> countRequestsByStatus(String status) async {
+    final response = await _supabase
+        .from('requests')
+        .select('id')
+        .eq('status', status)
+        .count(CountOption.exact);
+
+    return response.count;
+  }
+
   /// Obtiene todas las solicitudes recibidas ordenadas por las más recientes
   Future<List<AdminRequestModel>> fetchAllRequests({
     String? statusFilter,
@@ -140,6 +154,7 @@ class RequestManagementService {
         description,
         format_type,
         required_date,
+        end_date,
         dimensions,
         location,
         schedule_time,

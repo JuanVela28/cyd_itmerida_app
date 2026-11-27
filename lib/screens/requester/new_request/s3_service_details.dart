@@ -7,6 +7,7 @@ class ServiceDetailData {
   final String serviceId;
   final String description;
   final DateTime? requiredDate;
+  final DateTime? bannerEndDate;
   final String? formatType;
   final String? dimensions;
   final int? quantity;
@@ -17,6 +18,7 @@ class ServiceDetailData {
     required this.serviceId,
     required this.description,
     required this.requiredDate,
+    this.bannerEndDate,
     this.formatType,
     this.dimensions,
     this.quantity,
@@ -33,16 +35,18 @@ class _ServiceFields {
   final TextEditingController location;
 
   DateTime? requiredDate;
+  DateTime? bannerEndDate;
   TimeOfDay? scheduleTime;
 
   _ServiceFields(ServiceDetailData? data)
-      : description = TextEditingController(text: data?.description ?? ''),
-        formatType = TextEditingController(text: data?.formatType ?? ''),
-        dimensions = TextEditingController(text: data?.dimensions ?? ''),
-        quantity = TextEditingController(text: data?.quantity?.toString() ?? ''),
-        location = TextEditingController(text: data?.location ?? ''),
-        requiredDate = data?.requiredDate,
-        scheduleTime = data?.scheduleTime;
+    : description = TextEditingController(text: data?.description ?? ''),
+      formatType = TextEditingController(text: data?.formatType ?? ''),
+      dimensions = TextEditingController(text: data?.dimensions ?? ''),
+      quantity = TextEditingController(text: data?.quantity?.toString() ?? ''),
+      location = TextEditingController(text: data?.location ?? ''),
+      requiredDate = data?.requiredDate,
+      bannerEndDate = data?.bannerEndDate,
+      scheduleTime = data?.scheduleTime;
 
   void dispose() {
     description.dispose();
@@ -92,6 +96,10 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
     super.dispose();
   }
 
+  bool _isBannerService(ServiceOption service) {
+    return service.name.trim().toLowerCase().contains('banner');
+  }
+
   DateTime _today() {
     final now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
@@ -113,7 +121,9 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
   bool _requiresAdvance(ServiceOption service) {
     final category = service.categoryName.trim().toLowerCase();
     final name = service.name.trim().toLowerCase();
-    return category == 'diseño' || name == 'constancias';
+    return category == 'diseño' ||
+        name == 'constancias' ||
+        _isBannerService(service);
   }
 
   DateTime _minimumDate(ServiceOption service) {
@@ -140,13 +150,16 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
 
   ServiceDetailData _buildDetail(ServiceOption service) {
     final fields = _fields[service.id]!;
+    final isBanner = _isBannerService(service);
     final quantity = int.tryParse(fields.quantity.text.trim());
+
     return ServiceDetailData(
       serviceId: service.id,
       description: fields.description.text.trim(),
       requiredDate: fields.requiredDate,
+      bannerEndDate: isBanner ? fields.bannerEndDate : null,
       formatType: _optionalText(fields.formatType.text),
-      dimensions: service.requiresDimensions
+      dimensions: (!isBanner && service.requiresDimensions)
           ? _optionalText(fields.dimensions.text)
           : null,
       quantity: service.requiresQuantity ? quantity : null,
@@ -206,10 +219,16 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
 
   Widget _dateField(ServiceOption service, _ServiceFields fields) {
     final earliest = _minimumDate(service);
+    final isBanner = _isBannerService(service);
+
     return FormField<DateTime>(
       initialValue: fields.requiredDate,
       validator: (value) {
-        if (value == null) return 'Selecciona la fecha requerida.';
+        if (value == null) {
+          return isBanner
+              ? 'Selecciona la fecha de publicación.'
+              : 'Selecciona la fecha requerida.';
+        }
         if (DateTime(value.year, value.month, value.day).isBefore(earliest)) {
           return _requiresAdvance(service)
               ? 'Este servicio requiere 5 días hábiles de anticipación.'
@@ -246,17 +265,116 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
                     initialDate: initial,
                     firstDate: earliest,
                     lastDate: DateTime(_today().year + 3, 12, 31),
-                    helpText: 'Fecha requerida',
+                    helpText: isBanner
+                        ? 'Fecha de publicación'
+                        : 'Fecha requerida',
                   );
                   if (selected == null || !mounted || !field.mounted) return;
-                  fields.requiredDate = selected;
+                  setState(() {
+                    fields.requiredDate = selected;
+                    if (fields.bannerEndDate != null &&
+                        fields.bannerEndDate!.isBefore(selected)) {
+                      fields.bannerEndDate = null;
+                    }
+                  });
                   field.didChange(selected);
                 },
                 icon: const Icon(Icons.calendar_month_outlined, size: 19),
                 label: Text(
                   date == null
-                      ? 'Seleccionar fecha requerida'
-                      : 'Fecha: ${_formatDate(date)}',
+                      ? (isBanner
+                            ? 'Seleccionar fecha de publicación'
+                            : 'Seleccionar fecha requerida')
+                      : (isBanner
+                            ? 'Publicación: ${_formatDate(date)}'
+                            : 'Fecha: ${_formatDate(date)}'),
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ),
+            ),
+            if (field.hasError) ...[
+              const SizedBox(height: 6),
+              Text(
+                field.errorText!,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _bannerEndDateField(ServiceOption service, _ServiceFields fields) {
+    final minPublishDate = _minimumDate(service);
+    final earliestEnd =
+        fields.requiredDate != null &&
+            !fields.requiredDate!.isBefore(minPublishDate)
+        ? fields.requiredDate!
+        : minPublishDate;
+
+    return FormField<DateTime>(
+      key: ValueKey('banner_end_${service.id}_${fields.bannerEndDate}'),
+      initialValue: fields.bannerEndDate,
+      validator: (value) {
+        if (value == null) {
+          return 'Selecciona la fecha de baja del banner.';
+        }
+        if (fields.requiredDate != null &&
+            DateTime(value.year, value.month, value.day).isBefore(
+              DateTime(
+                fields.requiredDate!.year,
+                fields.requiredDate!.month,
+                fields.requiredDate!.day,
+              ),
+            )) {
+          return 'La fecha de baja no puede ser anterior a la de publicación.';
+        }
+        return null;
+      },
+      builder: (field) {
+        final date = field.value;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: AppColors.surfaceWhite,
+                  foregroundColor: AppColors.primaryGuinda,
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 14,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () async {
+                  final initial = date != null && !date.isBefore(earliestEnd)
+                      ? date
+                      : earliestEnd;
+                  final selected = await showDatePicker(
+                    context: context,
+                    initialDate: initial,
+                    firstDate: earliestEnd,
+                    lastDate: DateTime(_today().year + 3, 12, 31),
+                    helpText: 'Fecha de baja del banner',
+                  );
+                  if (selected == null || !mounted || !field.mounted) return;
+                  setState(() => fields.bannerEndDate = selected);
+                  field.didChange(selected);
+                },
+                icon: const Icon(Icons.event_busy_outlined, size: 19),
+                label: Text(
+                  date == null
+                      ? 'Seleccionar fecha de baja del banner'
+                      : 'Baja: ${_formatDate(date)}',
                   style: const TextStyle(fontSize: 13),
                 ),
               ),
@@ -312,6 +430,8 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
 
   Widget _buildServiceCard(ServiceOption service) {
     final fields = _fields[service.id]!;
+    final isBanner = _isBannerService(service);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
@@ -370,8 +490,16 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
                   },
                 ),
                 const SizedBox(height: 10),
-                _fieldLabel('Fecha requerida', required: true),
+                _fieldLabel(
+                  isBanner ? 'Fecha de publicación' : 'Fecha requerida',
+                  required: true,
+                ),
                 _dateField(service, fields),
+                if (isBanner) ...[
+                  const SizedBox(height: 14),
+                  _fieldLabel('Fecha de baja del banner', required: true),
+                  _bannerEndDateField(service, fields),
+                ],
                 if (_requiresAdvance(service)) ...[
                   const SizedBox(height: 8),
                   Container(
@@ -382,9 +510,7 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Text(
-                      'Este servicio requiere 5 días hábiles de '
-                      'anticipación. Los festivos institucionales '
-                      'aún no se descuentan.',
+                      'Este servicio requiere 5 días hábiles de anticipación.',
                       style: TextStyle(
                         fontSize: 12,
                         color: AppColors.statusPendingText,
@@ -396,11 +522,13 @@ class _ServiceDetailsStepState extends State<ServiceDetailsStep> {
                 _fieldLabel('Formato de entrega (opcional)'),
                 TextFormField(
                   controller: fields.formatType,
-                  decoration: _fieldDecoration('Ej. digital, impreso, horizontal'),
+                  decoration: _fieldDecoration(
+                    'Ej. digital, impreso, horizontal',
+                  ),
                   maxLength: 100,
                   style: const TextStyle(fontSize: 14),
                 ),
-                if (service.requiresDimensions) ...[
+                if (service.requiresDimensions && !isBanner) ...[
                   const SizedBox(height: 6),
                   _fieldLabel('Dimensiones', required: true),
                   TextFormField(

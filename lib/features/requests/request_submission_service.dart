@@ -137,6 +137,9 @@ class RequestSubmissionService {
           'required_date': d.requiredDate != null
               ? _formatDateIso(d.requiredDate!)
               : null,
+          'end_date': d.bannerEndDate != null
+              ? _formatDateIso(d.bannerEndDate!)
+              : null,
           'dimensions': d.dimensions,
           'location': d.location,
           'schedule_time': _formatTimeOfDay(d.scheduleTime),

@@ -1,10 +1,10 @@
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class MyRequestService {
   final String name;
   final String description;
   final String? requiredDate;
+  final String? endDate;
   final String status;
   final String? dimensions;
   final String? location;
@@ -15,6 +15,7 @@ class MyRequestService {
     required this.name,
     required this.description,
     required this.requiredDate,
+    required this.endDate,
     required this.status,
     this.dimensions,
     this.location,
@@ -33,6 +34,7 @@ class MyRequestService {
       name: name,
       description: json['description']?.toString() ?? '',
       requiredDate: json['required_date']?.toString(),
+      endDate: json['end_date']?.toString(),
       status: json['status']?.toString() ?? 'pending',
       dimensions: json['dimensions']?.toString(),
       location: json['location']?.toString(),
@@ -46,18 +48,12 @@ class MyRequestAttachment {
   final String fileName;
   final String category;
 
-  const MyRequestAttachment({
-    required this.fileName,
-    required this.category,
-  });
+  const MyRequestAttachment({required this.fileName, required this.category});
 
-  factory MyRequestAttachment.fromJson(
-    Map<String, dynamic> json,
-  ) {
+  factory MyRequestAttachment.fromJson(Map<String, dynamic> json) {
     return MyRequestAttachment(
       fileName: json['file_name']?.toString() ?? 'Archivo',
-      category:
-          json['category']?.toString() ?? 'general_reference',
+      category: json['category']?.toString() ?? 'general_reference',
     );
   }
 }
@@ -78,9 +74,8 @@ class MyRequestHistory {
 
     return MyRequestHistory(
       action: json['action']?.toString() ?? 'Actualización',
-      createdAt: DateTime.tryParse(
-        json['created_at']?.toString() ?? '',
-      )?.toLocal(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '')
+          ?.toLocal(),
       note: details is Map ? details['note']?.toString() : null,
     );
   }
@@ -112,9 +107,8 @@ class MyRequest {
   factory MyRequest.fromJson(Map<String, dynamic> json) {
     final services = ((json['request_services'] as List?) ?? [])
         .map(
-          (item) => MyRequestService.fromJson(
-            Map<String, dynamic>.from(item as Map),
-          ),
+          (item) =>
+              MyRequestService.fromJson(Map<String, dynamic>.from(item as Map)),
         )
         .toList();
 
@@ -128,25 +122,21 @@ class MyRequest {
 
     final history = ((json['request_history'] as List?) ?? [])
         .map(
-          (item) => MyRequestHistory.fromJson(
-            Map<String, dynamic>.from(item as Map),
-          ),
+          (item) =>
+              MyRequestHistory.fromJson(Map<String, dynamic>.from(item as Map)),
         )
         .toList();
 
     history.sort((a, b) {
-      final first = a.createdAt ??
-          DateTime.fromMillisecondsSinceEpoch(0);
-      final second = b.createdAt ??
-          DateTime.fromMillisecondsSinceEpoch(0);
+      final first = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final second = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
       return second.compareTo(first);
     });
 
     return MyRequest(
       id: json['id'].toString(),
       folio: json['folio']?.toString() ?? '',
-      activityName:
-          json['activity_name']?.toString() ?? 'Sin título',
+      activityName: json['activity_name']?.toString() ?? 'Sin título',
       department: json['department']?.toString() ?? '',
       requestDate: json['request_date']?.toString() ?? '',
       status: json['status']?.toString() ?? 'pending',
@@ -181,6 +171,7 @@ class MyRequestsService {
             id,
             description,
             required_date,
+            end_date,
             status,
             dimensions,
             location,
@@ -203,8 +194,6 @@ class MyRequestsService {
         .eq('requester_id', user.id)
         .order('created_at', ascending: false);
 
-    return rows
-        .map((row) => MyRequest.fromJson(row))
-        .toList();
+    return rows.map((row) => MyRequest.fromJson(row)).toList();
   }
 }

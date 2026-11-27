@@ -261,21 +261,30 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                   if (request.services.isEmpty)
                     const Text('No hay servicios visibles.'),
                   ...request.services.map((service) {
+                    final isBanner = service.name.trim().toLowerCase().contains(
+                      'banner',
+                    );
+
                     return Card(
                       child: ListTile(
                         leading: const Icon(
                           Icons.design_services_outlined,
                           color: AppColors.primaryGuinda,
                         ),
-                        title: Text(service.name),
+                        title: Text(
+                          isBanner ? 'Banner (para página web)' : service.name,
+                        ),
                         subtitle: Text(
                           [
                             if (service.description.isNotEmpty)
                               service.description,
-                            'Fecha requerida: '
-                                '${_formatDate(service.requiredDate)}',
+                            isBanner
+                                ? 'Fecha de publicación: ${_formatDate(service.requiredDate)}'
+                                : 'Fecha requerida: ${_formatDate(service.requiredDate)}',
+                            if (isBanner)
+                              'Fecha de baja: ${_formatDate(service.endDate)}',
                             'Estado: ${_statusLabel(service.status)}',
-                            if (service.dimensions != null)
+                            if (!isBanner && service.dimensions != null)
                               'Dimensiones: ${service.dimensions}',
                             if (service.quantity != null)
                               'Cantidad: ${service.quantity}',

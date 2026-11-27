@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../features/requests/service_catalog_service.dart';
@@ -118,6 +119,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
         details: _serviceDetails,
         attachments: _attachments,
         onBack: () => _goToStep(3),
+        onSubmitted: () => context.go('/requester'),
       );
     }
 
