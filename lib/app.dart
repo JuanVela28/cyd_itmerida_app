@@ -9,6 +9,7 @@ import 'screens/requester/requester_home_screen.dart';
 import 'core/theme/app_theme.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/requester/new_request/new_request_screen.dart';
+import 'screens/admin/user_management_screen.dart';
 
 /// Configuración de las rutas de navegación.
 final GoRouter _router = GoRouter(
@@ -29,6 +30,11 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/admin/requests',
       builder: (context, state) => const RequestManagementScreen(),
+    ),
+
+    GoRoute(
+      path: '/admin/users',
+      builder: (context, state) => const UserManagementScreen(),
     ),
 
     GoRoute(

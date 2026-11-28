@@ -212,10 +212,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   _buildMenuTile(
                     icon: Icons.people_alt_rounded,
                     title: 'Gestión de usuarios',
-                    subtitle: 'Altas y bajas de jefes de departamento y equipo',
-                    onTap: () {
-                      // Próximo módulo a conectar
-                    },
+                    subtitle: 'Consultar y administrar usuarios institucionales',
+                    onTap: () => context.push('/admin/users'),
                   ),
                 ],
               ),
